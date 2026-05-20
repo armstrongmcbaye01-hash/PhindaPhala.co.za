@@ -1160,30 +1160,33 @@
             <button class="btn-ghost" onclick="resetForm()">Send Another Message</button>
           </div>
           <form id="contactForm" onsubmit="submitForm(event)" style="display:block;">
+            <input type="hidden" name="access_key" value="ed545b42-19f0-462f-8a38-03700a7da982">
+            <input type="hidden" name="subject" value="New Enquiry from PhindaPhala Website">
+            <input type="hidden" name="from_name" value="PhindaPhala Website">
             <div class="form-grid">
               <div class="form-row">
                 <div>
                   <label class="form-label">Full Name *</label>
-                  <input type="text" class="form-input" required placeholder="Your full name">
+                  <input type="text" class="form-input" name="name" required placeholder="Your full name">
                 </div>
                 <div>
                   <label class="form-label">Company</label>
-                  <input type="text" class="form-input" placeholder="Your company name">
+                  <input type="text" class="form-input" name="company" placeholder="Your company name">
                 </div>
               </div>
               <div class="form-row">
                 <div>
                   <label class="form-label">Email *</label>
-                  <input type="email" class="form-input" required placeholder="you@company.co.za">
+                  <input type="email" class="form-input" name="email" required placeholder="you@company.co.za">
                 </div>
                 <div>
                   <label class="form-label">Phone</label>
-                  <input type="tel" class="form-input" placeholder="+27 xx xxx xxxx">
+                  <input type="tel" class="form-input" name="phone" placeholder="+27 xx xxx xxxx">
                 </div>
               </div>
               <div>
                 <label class="form-label">Service Required</label>
-                <select class="form-select">
+                <select class="form-select" name="service">
                   <option value="">Select a service...</option>
                    <option>Waste Collection & Logistics</option>
                   <option>Recycling & Material Recovery</option>
@@ -1196,7 +1199,7 @@
               </div>
               <div>
                 <label class="form-label">Message *</label>
-                <textarea class="form-textarea" rows="5" required placeholder="Tell us about your waste management needs..."></textarea>
+                <textarea class="form-textarea" name="message" rows="5" required placeholder="Tell us about your waste management needs..."></textarea>
               </div>
               <button type="submit" class="btn-submit" id="submitBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -1346,15 +1349,32 @@
   if (statsEl) statsObs.observe(statsEl);
 
   // ── Contact form
-  function submitForm(e) {
+  async function submitForm(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div> Sending...';
-    setTimeout(() => {
-      document.getElementById('contactForm').style.display = 'none';
-      document.getElementById('formSuccess').style.display = 'flex';
-    }, 1200);
+
+    const form = document.getElementById('contactForm');
+    const data = new FormData(form);
+
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: data
+      });
+      const json = await res.json();
+      if (json.success) {
+        form.style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'flex';
+      } else {
+        throw new Error(json.message);
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message';
+      alert('Sorry, something went wrong. Please try again or email us directly at info@phindaphala.co.za');
+    }
   }
   function resetForm() {
     document.getElementById('contactForm').reset();
